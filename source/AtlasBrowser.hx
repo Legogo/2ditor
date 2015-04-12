@@ -8,6 +8,7 @@ import openfl.Assets;
 import flash.geom.Matrix;
 import flash.display.BitmapData;
 import openfl.events.Event;
+import openfl.utils.Object;
 import systools.Dialogs;
 import flixel.ui.FlxButton;
 import sys.io.File;
@@ -25,12 +26,10 @@ class AtlasBrowser extends FlxGroup
   var btnImport:FlxButton;
   var btnRemove:FlxButton;
   
-  var list:Array<String>;
+  var list:Array<Object> = new Array<Object>();
   var sprites:Array<FlxSprite> = new Array<FlxSprite>();
   
   var selectIdx:Int = 0;
-  
-  var atlasFilePath:String = "";
   
   var slotSize:Int = 0;
   
@@ -40,12 +39,10 @@ class AtlasBrowser extends FlxGroup
     atlasBrowser = this;
     BaseState.root.add(this);
     
-    atlasFilePath = SystemInfo.PATH_ATLAS;
-    
     slotSize = Math.floor(FlxG.width * 0.1);
     
-    add(btnImport = new FlxButton(0, FlxG.height - 20, "Import", onImport));
-    add(btnRemove = new FlxButton(100, FlxG.height - 20, "Remove", onRemove));
+    add(btnImport = new FlxButton(0, slotSize+10, "Import", onImport));
+    add(btnRemove = new FlxButton(75, slotSize+10, "Remove", onRemove));
     
     btnImport.scrollFactor.set();
     btnRemove.scrollFactor.set();
@@ -66,12 +63,14 @@ class AtlasBrowser extends FlxGroup
       //top of screen
       if (pos.y < slotSize) {
         var slot:Int = Math.floor(pos.x / slotSize);
-        
-        if (selectIdx != slot) {
-          selectIdx = slot;
-          return;
-        }else {
-          event_insertToCanvas();
+        if (slot < list.length) {
+          if (selectIdx != slot) {
+            selectIdx = slot;
+            return;
+          }else {
+            event_insertToCanvas();
+          }
+          
         }
         
       }
@@ -87,9 +86,7 @@ class AtlasBrowser extends FlxGroup
   
   public function update_atlas():Void {
     
-    update_list();
-    
-    //clear list
+    //clear old sprites list
     for (i in 0...sprites.length) {
       if (sprites[i] == null) continue;
       sprites[i].exists = false;
@@ -97,8 +94,10 @@ class AtlasBrowser extends FlxGroup
       sprites[i] = null;
     }
     
+    if (list == null) return;
+    
     for (i in 0...list.length) {
-      var sp:FlxSprite = update_asset(list[i]);
+      var sp:FlxSprite = update_asset(list[i].path);
       sprites[i] = sp;
       sp.origin.x = 0;
       sp.origin.y = 0;
@@ -144,11 +143,48 @@ class AtlasBrowser extends FlxGroup
       addAsset(assets[i]);
     }
     
+    FileBridge.instance.saveFile();
     update_atlas();
   }
   
+  
+  function addAsset(path:String):Void {
+    if (path.length <= 0) return;
+    var exist:Bool = false;
+    for (i in 0...list.length) {
+      if (list[i].path == path) {
+        exist = true;
+      }
+    }
+    
+    if (!exist) {
+      list.push( { id:getUniqId(), path:path } );
+    }
+  }
+  
+  function getUniqId():Int {
+    return Math.floor(Math.random() * 999999999);
+  }
+  
+  public function fromObject(obj:Object):Void {
+    list = new Array<Object>();
+    var arr:Array<Object> = obj.data;
+    for (n in arr) {
+      list.push(n);
+    }
+    trace("<Atlas>loaded " + list.length + " objects in atlas");
+    update_atlas();
+  }
+  
+  public function toObject():Object {
+    var o:Object = { };
+    o.category = "atlas";
+    o.data = list;
+    return o;
+  }
+  
   public function onRemove():Void {
-    removeAsset(list[selectIdx]);
+    removeAsset(selectIdx);
   }
   
   function onImport():Void {
@@ -161,47 +197,19 @@ class AtlasBrowser extends FlxGroup
     btnRemove.visible = AtlasBrowser.atlasBrowser.hasSelection();
   }
 	
-  function update_list():Void {
-    var c:String = File.getContent(SystemInfo.PATH_FOLDER + atlasFilePath);
-    var all:Array<String> = c.split('\n');
-    list = new Array<String>();
-    
-    //remove empty lines
-    for (i in 0...all.length) 
-    {
-      if (all[i].length > 0) {
-        list.push(all[i]);
-      }
-    }
-    
-  }
-  
-  public function removeAsset(path:String):Void {
-    if (path.length <= 0) return;
+  public function removeAsset(idx:Int):Void {
+    if (list.length <= 0) return;
     
     //rewrite all without selection
-    var content:String = "";
+    var newList:Array<Object> = new Array<Object>();
     for (i in 0...list.length) 
     {
-      if (list[i] != path) content += list[i] + "\n";
+      if (i != idx) newList.push(list[i]);
     }
-    File.saveContent(SystemInfo.PATH_FOLDER + atlasFilePath, content);
+    list = newList;
     
+    FileBridge.instance.saveFile();
     update_atlas();
-  }
-  
-  
-  public function addAsset(path:String):Void {
-    if (path.length <= 0) return;
-    
-    var content:String = File.getContent(SystemInfo.PATH_FOLDER + atlasFilePath);
-    if (content.indexOf(path) < 0) {
-      content += "\n" + path;
-      File.saveContent(SystemInfo.PATH_FOLDER + atlasFilePath, content);
-    }else {
-      DebugBox.log(path + " is already in atlas");
-    }
-    
   }
   
   public function hasSelection():Bool { 
@@ -211,7 +219,6 @@ class AtlasBrowser extends FlxGroup
     }
     return selectIdx >= 0;
   }
-  
   
   
   

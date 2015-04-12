@@ -1,0 +1,7 @@
+[
+  {"category":"level","data":[]},
+  {"category":"atlas","data":[
+    {"id":"1", "path":"D:/epicbros/collateral/assets/images/level/level_ground.png"},
+    {"id":"2", "path":"D:/epicbros/collateral/assets/images/level/level_symbol.png"}
+  ]}
+]

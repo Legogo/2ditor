@@ -32,6 +32,8 @@ class BaseState extends FlxState
     
     //FlxG.bgColor = 
     //FlxG.camera.follow(Canvas.canvas);
+    
+    new FileBridge();
 	}
   
   override public function update():Void 
