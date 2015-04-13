@@ -98,14 +98,15 @@ class AtlasBrowser extends FlxGroup
     
     for (i in 0...list.length) {
       var sp:FlxSprite = update_asset(list[i].path);
-      sprites[i] = sp;
-      sp.origin.x = 0;
-      sp.origin.y = 0;
-      //sp.makeGraphic(size, size, FlxColor.WHITE);
-      scaleImageHorizontally(sprites[i], 0.1);
-      sp.x = i * slotSize;
-      sp.y = 0;
-      
+			if (sp != null) {
+				sprites[i] = sp;
+				sp.origin.x = 0;
+				sp.origin.y = 0;
+				//sp.makeGraphic(size, size, FlxColor.WHITE);
+				scaleImageHorizontally(sprites[i], 0.1);
+				sp.x = i * slotSize;
+				sp.y = 0;
+			}
     }
   }
   
@@ -120,10 +121,15 @@ class AtlasBrowser extends FlxGroup
   
   function update_asset(path:String):FlxSprite {
     
+    var data:BitmapData = BitmapData.load(path);
+    //trace(data.__handle);
+		if (data.width <= 0) {
+			trace("WARNING could not find file at path : " + path + ". Width = 0");
+			return null;
+		}
+		
     var sp:FlxSprite = new FlxSprite();
     add(sp);
-    
-    var data:BitmapData = BitmapData.load(path);
     
 		var imgWidth:Float = FlxG.width / data.width;
 		var imgHeight:Float = FlxG.height / data.height;
