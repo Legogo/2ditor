@@ -4,6 +4,7 @@ import flixel.FlxSprite;
 import flixel.util.FlxColor;
 import flixel.util.FlxPoint;
 import flixel.util.FlxSpriteUtil;
+import openfl.utils.Object;
 
 /**
  * ...
@@ -15,6 +16,8 @@ class CanvasGrid extends CanvasObject
   var gridSpacing:Float = 50;
   var offset:FlxPoint = new FlxPoint();
   var offsetDiff:FlxPoint = new FlxPoint();
+  
+  var lineStyle:Object = { color: 0xFF777777, thickness: 1 };
   
   public function new() 
   {
@@ -49,7 +52,7 @@ class CanvasGrid extends CanvasObject
     //spr.y = offset.y;
   }
   
-  function update_grid():Void {
+  public function update_grid():Void {
     
     spr.makeGraphic(FlxG.width, FlxG.height, FlxColor.TRANSPARENT, true);
     
@@ -64,14 +67,14 @@ class CanvasGrid extends CanvasObject
     
     while (i < FlxG.width / gridSpacing) {
       idx = Math.floor((i * gridSpacing) + offsetDiff.y);
-      FlxSpriteUtil.drawLine(spr, 0, idx, FlxG.width, idx, { color: FlxColor.WHITE, thickness: 1 });
+      FlxSpriteUtil.drawLine(spr, 0, idx, FlxG.width, idx, lineStyle);
       i++;
     }
     
     i = 0;
     while (i < FlxG.width / gridSpacing) {
       idx = Math.floor((i * gridSpacing) + offsetDiff.x);
-      FlxSpriteUtil.drawLine(spr, idx, 0, idx, FlxG.height, { color: FlxColor.WHITE, thickness: 1 });
+      FlxSpriteUtil.drawLine(spr, idx, 0, idx, FlxG.height, lineStyle);
       i++;
     }
     

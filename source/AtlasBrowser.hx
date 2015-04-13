@@ -27,11 +27,12 @@ class AtlasBrowser extends FlxGroup
   var btnRemove:FlxButton;
   
   var list:Array<Object> = new Array<Object>();
-  var sprites:Array<FlxSprite> = new Array<FlxSprite>();
+  var sprites:FlxGroup = new FlxGroup();
   
   var selectIdx:Int = 0;
-  
   var slotSize:Int = 0;
+  
+  var slotSelectionVisual:AtlasBrowserSelector;
   
   public function new() 
   {
@@ -46,6 +47,11 @@ class AtlasBrowser extends FlxGroup
     
     btnImport.scrollFactor.set();
     btnRemove.scrollFactor.set();
+    
+    add(sprites);
+    
+    slotSelectionVisual = new AtlasBrowserSelector();
+    add(slotSelectionVisual.spr);
     
     update_atlas();
   }
@@ -66,32 +72,35 @@ class AtlasBrowser extends FlxGroup
         if (slot < list.length) {
           if (selectIdx != slot) {
             selectIdx = slot;
+            slotSelectionVisual.update_slotIndex(selectIdx);
             return;
           }else {
             event_insertToCanvas();
           }
-          
         }
-        
       }
       
     }
     
   }
   
+  function getAtlasSprite(idx:Int):FlxSprite {
+    return cast(sprites.members[idx], FlxSprite);
+  }
+  
   function event_insertToCanvas():Void {
     if (selectIdx < 0) return;
-    Canvas.canvas.addAsset(sprites[selectIdx]);
+    Canvas.canvas.addAsset(getAtlasSprite(selectIdx));
   }
   
   public function update_atlas():Void {
     
     //clear old sprites list
     for (i in 0...sprites.length) {
-      if (sprites[i] == null) continue;
-      sprites[i].exists = false;
-      this.remove(sprites[i]);
-      sprites[i] = null;
+      if (sprites.members[i] == null) continue;
+      sprites.members[i].exists = false;
+      this.remove(sprites.members[i]);
+      sprites.members[i] = null;
     }
     
     if (list == null) return;
@@ -99,22 +108,22 @@ class AtlasBrowser extends FlxGroup
     for (i in 0...list.length) {
       var sp:FlxSprite = update_asset(list[i].path);
 			if (sp != null) {
-				sprites[i] = sp;
 				sp.origin.x = 0;
 				sp.origin.y = 0;
 				//sp.makeGraphic(size, size, FlxColor.WHITE);
-				scaleImageHorizontally(sprites[i], 0.1);
+				scaleImageHorizontally(getAtlasSprite(i), 0.1);
 				sp.x = i * slotSize;
 				sp.y = 0;
 			}
     }
+    
   }
   
   function countAssetInList():Int {
     var count:Int = 0;
     for (i in 0...sprites.length) 
     {
-      if (sprites[i] != null) count++;
+      if (sprites.members[i] != null) count++;
     }
     return count;
   }
@@ -129,7 +138,7 @@ class AtlasBrowser extends FlxGroup
 		}
 		
     var sp:FlxSprite = new FlxSprite();
-    add(sp);
+    sprites.add(sp);
     
 		var imgWidth:Float = FlxG.width / data.width;
 		var imgHeight:Float = FlxG.height / data.height;

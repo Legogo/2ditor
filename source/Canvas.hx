@@ -59,17 +59,7 @@ class Canvas extends FlxGroup
   {
     super.update();
     
-    if (FlxG.keys.justReleased.SPACE) {
-      state = (state == 1) ? 0 : 1;
-      if (state <= 0) selection = null;
-    }
-    /*
-    if (FlxG.mouse.wheel != 0) {
-      zoom += FlxG.mouse.wheel * 0.1;
-      zoom = Math.max(0.2, zoom);
-      //trace(zoom);
-    }
-    */
+    state = (FlxG.keys.pressed.SPACE) ? 0 : 1;
     
     update_mouseDelta();
     
@@ -136,7 +126,6 @@ class Canvas extends FlxGroup
     mouseOrigin.y += mouseDelta.y;
     
     grid.update_position(mouseDelta);
-    
   }
   
   function update_visual():Void {
@@ -150,5 +139,11 @@ class Canvas extends FlxGroup
     for (i in 0...objects.length) {
       objects[i].update_position(mouseOrigin);
     }
+    
+    grid.update_grid();
+  }
+  
+  public function getActionLabel():String {
+    return (state == 1) ? "Move object" : "Pan";
   }
 }
