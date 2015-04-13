@@ -5,6 +5,7 @@ import flixel.FlxSprite;
 import flixel.FlxState;
 import flixel.text.FlxText;
 import flixel.util.FlxMath;
+import openfl.Lib;
 
 
 import sys.io.File;
@@ -21,6 +22,9 @@ class BaseState extends FlxState
 	override public function create():Void
 	{
     root = this;
+    
+    SystemInfo.HEIGHT = Lib.current.stage.stageHeight;
+    SystemInfo.WIDTH = Lib.current.stage.stageWidth;
     
 		FlxG.mouse.useSystemCursor = true;
 		

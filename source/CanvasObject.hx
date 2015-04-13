@@ -28,7 +28,7 @@ class CanvasObject
     x += pt.x;
     y += pt.y;
     
-    x = Math.max(x, 0);
-    y = Math.max(y, 0);
+    //x = Math.max(x, 0);
+    //y = Math.max(y, 0);
   }
 }

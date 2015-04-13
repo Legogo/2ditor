@@ -3,6 +3,8 @@ import flixel.FlxBasic;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup;
+import flixel.util.FlxCollision;
+import flixel.util.FlxColor;
 import flixel.util.FlxPoint;
 
 /**
@@ -16,6 +18,8 @@ class Canvas extends FlxGroup
   var zoom:Float = 1;
   
   var objects:Array<CanvasObject> = new Array<CanvasObject>();
+  
+  var grid:CanvasGrid;
   
   var mouseDelta:FlxPoint = new FlxPoint();
   var lastPosition:FlxPoint = new FlxPoint();
@@ -31,10 +35,13 @@ class Canvas extends FlxGroup
   {
     super();
     
-    origin = new CanvasObject(new FlxSprite().makeGraphic(2, 2));
-    origin.staticObject = true;
+    origin = new CanvasOrigin();
     objects.push(origin);
     add(origin.spr);
+    
+    grid = new CanvasGrid();
+    //objects.push(grid);
+    //add(grid.spr);
     
     mouseOrigin.x = mouseOrigin.y = FlxG.width * 0.5;
     
@@ -56,12 +63,13 @@ class Canvas extends FlxGroup
       state = (state == 1) ? 0 : 1;
       if (state <= 0) selection = null;
     }
-    
+    /*
     if (FlxG.mouse.wheel != 0) {
       zoom += FlxG.mouse.wheel * 0.1;
       zoom = Math.max(0.2, zoom);
       //trace(zoom);
     }
+    */
     
     update_mouseDelta();
     
@@ -126,6 +134,9 @@ class Canvas extends FlxGroup
   function update_cameraMove():Void {
     mouseOrigin.x += mouseDelta.x;
     mouseOrigin.y += mouseDelta.y;
+    
+    grid.update_position(mouseDelta);
+    
   }
   
   function update_visual():Void {
