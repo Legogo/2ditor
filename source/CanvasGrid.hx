@@ -22,7 +22,7 @@ class CanvasGrid extends CanvasObject
   public function new() 
   {
     super(new FlxSprite());
-    staticObject = true;
+    name = "grid";
     changeGridSize(gridSpacing);
     
     BaseState.root.add(spr);
@@ -36,24 +36,10 @@ class CanvasGrid extends CanvasObject
     //spr.makeGraphic(SystemInfo.WIDTH, 10);
   }
   
-  override public function update_position(delta:FlxPoint):Void 
+  override public function update():Void 
   {
-    //super.update_position(origin);
-    offset.x += delta.x;
-    if (offset.x < 0) offset.x = gridSpacing + offset.x;
-    else if (offset.x > gridSpacing) offset.x = 0 + offset.x;
-    
-    offset.y += delta.y;
-    if (offset.y < 0) offset.y = gridSpacing + offset.y;
-    else if (offset.y > gridSpacing) offset.y = 0 + offset.y;
-    
-    update_grid();
-    //spr.x = offset.x;
-    //spr.y = offset.y;
-  }
-  
-  public function update_grid():Void {
-    
+    super.update();
+    /*
     spr.makeGraphic(FlxG.width, FlxG.height, FlxColor.TRANSPARENT, true);
     
     offsetDiff.x = Math.abs(offset.x) % gridSpacing;
@@ -77,6 +63,6 @@ class CanvasGrid extends CanvasObject
       FlxSpriteUtil.drawLine(spr, idx, 0, idx, FlxG.height, lineStyle);
       i++;
     }
-    
+    */
   }
 }

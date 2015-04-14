@@ -24,6 +24,7 @@ class BaseState extends FlxState
 	override public function create():Void
 	{
     root = this;
+    Layers.root = this;
     
     SystemInfo.HEIGHT = Lib.current.stage.stageHeight;
     SystemInfo.WIDTH = Lib.current.stage.stageWidth;
@@ -34,12 +35,13 @@ class BaseState extends FlxState
 		
 		super.create();
     
-    add(new DebugBox());
-    add(new Canvas());
-    add(new AtlasBrowser());
+    new Canvas();
+    new AtlasBrowser();
     
     actionTf = new FlxText(5, FlxG.height - 20, 100, 10);
-    add(actionTf);
+    Layers.getLayer(Layers.LAYER_DEBUG).add(actionTf);
+    
+    Layers.getLayer(Layers.LAYER_DEBUG).add(new DebugBox());
     
     new FileBridge();
 	}

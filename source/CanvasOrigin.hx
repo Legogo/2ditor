@@ -21,9 +21,8 @@ class CanvasOrigin extends CanvasObject
     spr.makeGraphic(FlxG.width, FlxG.height, FlxColor.TRANSPARENT, true);
     FlxSpriteUtil.drawLine(spr, 0, 5, 10, 5, lineStyle);
     FlxSpriteUtil.drawLine(spr, 5, 0, 5, 10, lineStyle);
-    
-    x = -5;
-    y = -5;
+    spr.x = -5;
+    spr.y = -5;
   }
   
 }

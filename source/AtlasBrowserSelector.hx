@@ -13,12 +13,11 @@ class AtlasBrowserSelector extends CanvasObject
 {
   
   var size:Float = FlxG.width * 0.1; 
-  var lineStyle:Object = { color: FlxColor.RED, thickness: 5 };
+  var lineStyle:Object = { color: FlxColor.RED, thickness: 2 };
   
   public function new() 
   {
     super(new FlxSprite());
-    staticObject = true;
     spr.scrollFactor.set();
     
     spr.makeGraphic(FlxG.width, FlxG.height, FlxColor.TRANSPARENT, true);
@@ -31,4 +30,5 @@ class AtlasBrowserSelector extends CanvasObject
   public function update_slotIndex(newIndex:Int):Void {
     spr.x = (newIndex * size);
   }
+  
 }

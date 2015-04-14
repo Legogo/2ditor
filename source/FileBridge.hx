@@ -15,11 +15,8 @@ class FileBridge
   static public var instance:FileBridge;
   
   var fileData:Object;
-  public var levelData:Object;
-  public var atlasData:Object;
   
   var lines:Array<String> = new Array<String>();
-  
   var filePath:String = "level-data.json";
   
   public function new() 
@@ -29,20 +26,20 @@ class FileBridge
   }
   
   public function loadFile():Void {
-    fileData = Json.parse(File.getContent(SystemInfo.PATH_FOLDER + filePath));
-    levelData = fileData[0];
-    atlasData = fileData[1];
-    
-    AtlasBrowser.atlasBrowser.fromObject(atlasData);
+    try {
+      fileData = Json.parse(File.getContent(SystemInfo.PATH_FOLDER + filePath));
+      AtlasBrowser.atlasBrowser.fromObject(fileData);
+    }catch(msg:String){
+      trace("Can't load level file");
+    }
   }
   
   public function saveFile():Void {
-    fileData[0] = levelData;
-    
-    atlasData = AtlasBrowser.atlasBrowser.toObject();
-    fileData[1] = atlasData;
+    fileData.objects = [];
+    fileData.assets = AtlasBrowser.atlasBrowser.toObject();
     
     File.saveContent(SystemInfo.PATH_FOLDER + filePath, Json.stringify(fileData));
+    trace("[FILE SAVED]");
   }
   
 }

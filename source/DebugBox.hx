@@ -17,6 +17,8 @@ class DebugBox extends FlxGroup
     instance = this;
     tf = new FlxText(0, 0, 500, "---");
     add(tf);
+    
+    Layers.getLayer(Layers.LAYER_DEBUG).add(this);
   }
   
   static public function log(s:String):Void {

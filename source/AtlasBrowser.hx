@@ -2,6 +2,7 @@ package;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup;
+import flixel.input.android.FlxAndroidKeyList;
 import flixel.util.FlxColor;
 import flixel.util.FlxPoint;
 import openfl.Assets;
@@ -26,8 +27,6 @@ class AtlasBrowser extends FlxGroup
   var btnImport:FlxButton;
   var btnRemove:FlxButton;
   
-	var paths:Array<String>;
-  var list:Array<Object>;
   var sprites:FlxGroup = new FlxGroup();
   
   var selectIdx:Int = 0;
@@ -39,7 +38,6 @@ class AtlasBrowser extends FlxGroup
   {
     super();
     atlasBrowser = this;
-    BaseState.root.add(this);
     
     slotSize = Math.floor(FlxG.width * 0.1);
     
@@ -55,6 +53,8 @@ class AtlasBrowser extends FlxGroup
     add(slotSelectionVisual.spr);
     
     update_atlas();
+    
+    Layers.getLayer(Layers.LAYER_UI).add(this);
   }
   
   override public function update():Void 
@@ -63,26 +63,34 @@ class AtlasBrowser extends FlxGroup
     
     update_ui();
     
-    if (FlxG.mouse.justReleased) {
-      var pos:FlxPoint = FlxG.mouse.getScreenPosition();
-      //trace(pos.x, pos.y);
-      
-      //top of screen
-      if (pos.y < slotSize) {
-        var slot:Int = Math.floor(pos.x / slotSize);
-        if (slot < list.length) {
-          if (selectIdx != slot) {
-            selectIdx = slot;
-            slotSelectionVisual.update_slotIndex(selectIdx);
-            return;
-          }else {
-            event_insertToCanvas();
-          }
+    var slotIdx:Int = getMouseOverIndex();
+    
+    if (slotIdx > -1) {
+      if (FlxG.mouse.justReleased) {
+        if (selectIdx != slotIdx) {
+          setSelectionSlot(slotIdx);
+          slotSelectionVisual.update_slotIndex(selectIdx);
+        }else {
+          event_insertToCanvas();
         }
       }
-      
     }
     
+  }
+  
+  function getMouseOverIndex():Int {
+    var pos:FlxPoint = FlxG.mouse.getScreenPosition();
+      //trace(pos.x, pos.y);
+      
+    //top of screen
+    if (pos.y < slotSize) {
+      var slot:Int = Math.floor(pos.x / slotSize);
+      if (slot < assets.length) {
+        return slot;
+      }
+    }
+    
+    return -1;
   }
   
   function getAtlasSprite(idx:Int):FlxSprite {
@@ -104,10 +112,10 @@ class AtlasBrowser extends FlxGroup
       sprites.members[i] = null;
     }
     
-    if (list == null) return;
+    if (assets == null) return;
     
-    for (i in 0...list.length) {
-      var sp:FlxSprite = update_asset(list[i].path);
+    for (i in 0...assets.length) {
+      var sp:FlxSprite = update_asset(assets[i]);
 			if (sp != null) {
 				sp.origin.x = 0;
 				sp.origin.y = 0;
@@ -118,6 +126,7 @@ class AtlasBrowser extends FlxGroup
 			}
     }
     
+    if (selectIdx >= assets.length) setSelectionSlot(assets.length - 1);
   }
   
   function countAssetInList():Int {
@@ -129,12 +138,14 @@ class AtlasBrowser extends FlxGroup
     return count;
   }
   
-  function update_asset(path:String):FlxSprite {
+  function update_asset(file:Object):FlxSprite {
     
-    var data:BitmapData = BitmapData.load(path);
-    //trace(data.__handle);
+    var fullPath:String = resourcePath + file.filename;
+    trace("loading " + fullPath);
+    var data:BitmapData = BitmapData.load(fullPath);
+    
 		if (data.width <= 0) {
-			trace("WARNING could not find file at path : " + path + ". Width = 0");
+			trace("WARNING could not find file at path : " + fullPath + ". Width = 0");
 			return null;
 		}
 		
@@ -150,31 +161,46 @@ class AtlasBrowser extends FlxGroup
     return sp;
 	}
   
-  public function addAssets(assets:Array<String>):Void {
+  public function addAssetsFromBrowser(assets:Array<String>):Void {
     if (assets == null) return;
     
-    trace("<Atlas> adding " + assets.length + " assets");
     for (i in 0...assets.length) 
     {
-      addAsset(assets[i]);
+      addAssetFromBrowser(assets[i]);
     }
+    trace("<Atlas> added " + assets.length + " assets");
     
     FileBridge.instance.saveFile();
     update_atlas();
   }
   
   
-  function addAsset(path:String):Void {
-    if (path.length <= 0) return;
+  function addAssetFromBrowser(fullPath:String):Void {
+    if (fullPath.length <= 0) return;
+    
+    var separator:String = (fullPath.indexOf('\\') > -1) ? '\\' : '/';
+    var lastIndex:Int = fullPath.lastIndexOf(separator)+1;
+    var path:String = fullPath.substr(0, lastIndex);
+    var fileName:String = fullPath.substr(lastIndex, fullPath.length - lastIndex);
+    
+    //trace(fullPath, path, fileName);
+    
+    if (resourcePath.length <= 0) resourcePath = path;
+    else if (path != resourcePath) {
+      trace("WARNING path is different than resource path ?");
+    }
+    
     var exist:Bool = false;
-    for (i in 0...list.length) {
-      if (list[i].path == path) {
+    for (i in 0...assets.length) {
+      if (assets[i].filename == fileName) {
         exist = true;
       }
     }
     
     if (!exist) {
-      list.push( { id:getUniqId(), path:path } );
+      var obj:Object = { id:getUniqId(), filename:fileName };
+      assets.push(obj);
+      trace("Adding asset : "+obj);
     }
   }
   
@@ -189,7 +215,7 @@ class AtlasBrowser extends FlxGroup
   function onImport():Void {
     var filter:FILEFILTERS = { count: 1, descriptions: ["PNG"], extensions: ["*.png"]};
     var result:Array<String> = Dialogs.openFile("Import image", "message ?", filter);
-    addAssets(result);
+    addAssetsFromBrowser(result);
   }
   
   public function update_ui():Void {
@@ -197,51 +223,62 @@ class AtlasBrowser extends FlxGroup
   }
 	
   public function removeAsset(idx:Int):Void {
-    if (list.length <= 0) return;
+    if (assets.length <= 0) return;
     
     //rewrite all without selection
     var newList:Array<Object> = new Array<Object>();
-    for (i in 0...list.length) 
+    for (i in 0...assets.length) 
     {
-      if (i != idx) newList.push(list[i]);
+      if (i != idx) newList.push(assets[i]);
     }
-    list = newList;
+    assets = newList;
     
     FileBridge.instance.saveFile();
     update_atlas();
   }
   
-  public function hasSelection():Bool { 
+  function setSelectionSlot(newSlot:Int):Void {
+    selectIdx = newSlot;
+    slotSelectionVisual.setVisible(selectIdx >= 0);
+    if (selectIdx >= 0) {
+      slotSelectionVisual.update_slotIndex(selectIdx);
+    }
+  }
+  
+  public function hasSelection():Bool {
     if (countAssetInList() <= 0) {
-      selectIdx = -1;
+      setSelectionSlot( -1);
       return false;
     }
     return selectIdx >= 0;
   }
   
-  
 	/* SAVE / LOAD */
 	
+	var resourcePath:String = "";
+  var assets:Array<Object>; //{id,filename}
+  
   public function fromObject(obj:Object):Void {
-		var data:Object = obj.data;
+		var data:Object = obj.assets;
 		
-		trace(data);
-		
-    paths = data.paths; // [string}
-		list = data.assets; // [{id,path}]
+    if (data.path != null) {
+      resourcePath = data.path;
+    }
     
-    trace("<Atlas>loaded " + list.length + " objects and "+paths.length+" path in atlas");
+    if (data.list != null) {
+      assets = data.list; // [{id,path}]
+      trace("<Atlas>loaded assets : " + assets.length);
+    }
+    
     update_atlas();
   }
   
   public function toObject():Object {
     var o:Object = { };
-		o.category = "atlas";
-		o.paths = paths;
-    o.data = list;
-    return o;
+		o.path = resourcePath;
+    o.list = assets;
+		return o;
   }
-  
   
   static public function scaleImageHorizontally(img:FlxSprite, ratio:Float):FlxSprite {
     var res:Float = 0;

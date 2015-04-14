@@ -17,11 +17,16 @@ assets > [atlas assets file names and info + uniqid]
 		{"asset-id":1092840194,"x":10,"y":120}
 	]},
 	{"paths":[
-		"C:\myabsolutepath\",
-		"C:\anotherabsolutepath\"
+		{"id":123456, "path":"C:\myabsolutepath\"},
+    {"id":456789, "path":"C:\anotherabsolutepath\"}
 	]},
 	{"assets":[
-		{"id":1092840194, "path":"myFile.png"},
-		{"id":1092840195, "path":"myFile2.png"}
+		{"id":1092840194, "path-id":123456, "file":"myFile.png"},
+		{"id":1092840195, "path-id":123456, "file":"myFile2.png"}
 	]}
 ]
+
+[{
+  "level-objects":[],
+	"assets":{"path":"","list":[{"id":123456,"filename":"myFile.jpg"}]}
+}]
