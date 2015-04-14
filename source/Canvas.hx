@@ -1,5 +1,4 @@
 package;
-import flixel.FlxBasic;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup;
@@ -25,8 +24,12 @@ class Canvas extends FlxGroup
   var lastPosition:FlxPoint = new FlxPoint();
   var mouseOrigin:FlxPoint = new FlxPoint();
   
-  var selection:CanvasObject;
+  var selectedObject:CanvasObject;
   
+	var state_move_object:Int = 0;
+	var state_pan_camera:Int = 1;
+	var state_selection:Int = 2;
+	
   var state:Int = 0;
   
   var origin:CanvasObject;
@@ -64,8 +67,12 @@ class Canvas extends FlxGroup
     update_mouseDelta();
     
     switch(state) {
-      case 0 : update_cameraMove();
-      case 1 : update_objectMove();
+			case 0 : 
+				update_objectMove();
+      case 1 : 
+				update_cameraMove();
+			default : 
+				//...
     }
     
     update_visual();
@@ -73,31 +80,31 @@ class Canvas extends FlxGroup
   
   function update_mouseDelta():Void {
     
-    if (FlxG.mouse.pressed) {
-      var pos:FlxPoint = FlxG.mouse.getScreenPosition();
-      if (lastPosition.x == 0 && lastPosition.y == 0) {
-        lastPosition = pos;
-        return;
-      }
-      
-      mouseDelta.x = pos.x - lastPosition.x;
-      mouseDelta.y = pos.y - lastPosition.y;
-      
-      //trace(offset);
+		var pos:FlxPoint = FlxG.mouse.getScreenPosition();
+		
+		if (FlxG.mouse.justReleased) {
+			mouseDelta.x = mouseDelta.y = 0;
+			lastPosition.x = lastPosition.y = 0;
+			selectedObject = null;
+			return;
+		}
+		
+    if (FlxG.mouse.justPressed) {
       lastPosition = pos;
-      
-    }else if (FlxG.mouse.justReleased) {
-      lastPosition.x = lastPosition.y = 0;
-      mouseDelta.x = mouseDelta.y = 0;
-      selection = null;
+      return;
     }
     
+		if (FlxG.mouse.pressed) {
+			mouseDelta.x = pos.x - lastPosition.x;
+			mouseDelta.y = pos.y - lastPosition.y;
+		}
+		
   }
   
   function update_objectMove():Void {
     
     if (FlxG.mouse.justPressed) {
-      selection = null;
+      selectedObject = null;
       
       var i:Int = objects.length-1;
       while (i >= 0) {
@@ -105,7 +112,7 @@ class Canvas extends FlxGroup
         if (objects[i] != null) {
           if (!objects[i].staticObject) {
             if (objects[i].spr.overlapsPoint(FlxG.mouse.getScreenPosition(), true)) {
-              selection = objects[i];
+              selectedObject = objects[i];
               return;
             }
           }
@@ -116,9 +123,9 @@ class Canvas extends FlxGroup
       
     }
     
-    if (selection == null) return;
+    if (selectedObject == null) return;
     
-    selection.move(mouseDelta);
+    selectedObject.move(mouseDelta);
   }
   
   function update_cameraMove():Void {
@@ -144,6 +151,11 @@ class Canvas extends FlxGroup
   }
   
   public function getActionLabel():String {
-    return (state == 1) ? "Move object" : "Pan";
+		switch(state) {
+			case 0 : return "Move object";
+			case 1 : return "Pan camera";
+			case 2 : return "Selection";
+		}
+		return "";
   }
 }

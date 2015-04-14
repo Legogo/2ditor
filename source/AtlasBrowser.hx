@@ -26,7 +26,8 @@ class AtlasBrowser extends FlxGroup
   var btnImport:FlxButton;
   var btnRemove:FlxButton;
   
-  var list:Array<Object> = new Array<Object>();
+	var paths:Array<String>;
+  var list:Array<Object>;
   var sprites:FlxGroup = new FlxGroup();
   
   var selectIdx:Int = 0;
@@ -181,23 +182,6 @@ class AtlasBrowser extends FlxGroup
     return Math.floor(Math.random() * 999999999);
   }
   
-  public function fromObject(obj:Object):Void {
-    list = new Array<Object>();
-    var arr:Array<Object> = obj.data;
-    for (n in arr) {
-      list.push(n);
-    }
-    trace("<Atlas>loaded " + list.length + " objects in atlas");
-    update_atlas();
-  }
-  
-  public function toObject():Object {
-    var o:Object = { };
-    o.category = "atlas";
-    o.data = list;
-    return o;
-  }
-  
   public function onRemove():Void {
     removeAsset(selectIdx);
   }
@@ -235,6 +219,28 @@ class AtlasBrowser extends FlxGroup
     return selectIdx >= 0;
   }
   
+  
+	/* SAVE / LOAD */
+	
+  public function fromObject(obj:Object):Void {
+		var data:Object = obj.data;
+		
+		trace(data);
+		
+    paths = data.paths; // [string}
+		list = data.assets; // [{id,path}]
+    
+    trace("<Atlas>loaded " + list.length + " objects and "+paths.length+" path in atlas");
+    update_atlas();
+  }
+  
+  public function toObject():Object {
+    var o:Object = { };
+		o.category = "atlas";
+		o.paths = paths;
+    o.data = list;
+    return o;
+  }
   
   
   static public function scaleImageHorizontally(img:FlxSprite, ratio:Float):FlxSprite {
