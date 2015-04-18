@@ -13,12 +13,13 @@ class AtlasBrowserSelector extends CanvasObject
 {
   
   var size:Float = FlxG.width * 0.1; 
-  var lineStyle:Object = { color: FlxColor.RED, thickness: 2 };
   
   public function new() 
   {
     super(new FlxSprite());
     spr.scrollFactor.set();
+    
+    lineStyle = { color: FlxColor.RED, thickness: 2 };
     
     spr.makeGraphic(FlxG.width, FlxG.height, FlxColor.TRANSPARENT, true);
     FlxSpriteUtil.drawLine(spr, 0, 0, size, 0, lineStyle);

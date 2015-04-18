@@ -12,11 +12,12 @@ import openfl.utils.Object;
 class CanvasOrigin extends CanvasObject
 {
 
-  var lineStyle:Object = { color: FlxColor.RED, thickness: 3 };
   public function new() 
   {
     super(new FlxSprite());
     staticObject = true;
+    
+    lineStyle = { color: FlxColor.RED, thickness: 3 };
     
     spr.makeGraphic(FlxG.width, FlxG.height, FlxColor.TRANSPARENT, true);
     FlxSpriteUtil.drawLine(spr, 0, 5, 10, 5, lineStyle);

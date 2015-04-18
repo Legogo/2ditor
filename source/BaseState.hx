@@ -38,7 +38,7 @@ class BaseState extends FlxState
     new Canvas();
     new AtlasBrowser();
     
-    actionTf = new FlxText(5, FlxG.height - 20, 100, 10);
+    actionTf = new FlxText(5, FlxG.height - 40, 100, 10);
     Layers.getLayer(Layers.LAYER_DEBUG).add(actionTf);
     
     Layers.getLayer(Layers.LAYER_DEBUG).add(new DebugBox());
@@ -49,7 +49,8 @@ class BaseState extends FlxState
   override public function update():Void 
   {
     super.update();
-    actionTf.text = Canvas.canvas.getActionLabel();
+    actionTf.text = "Hovering "+Canvas.canvas.getHoverObjectName();
+    actionTf.text += "\n"+Canvas.canvas.getActionLabel();
   }
   
 }

@@ -12,12 +12,9 @@ import openfl.utils.Object;
  */
 class CanvasGrid extends CanvasObject
 {
-  
   var gridSpacing:Float = 50;
   var offset:FlxPoint = new FlxPoint();
   var offsetDiff:FlxPoint = new FlxPoint();
-  
-  var lineStyle:Object = { color: 0xFF777777, thickness: 1 };
   
   public function new() 
   {
@@ -25,7 +22,7 @@ class CanvasGrid extends CanvasObject
     name = "grid";
     changeGridSize(gridSpacing);
     
-    BaseState.root.add(spr);
+    //BaseState.root.add(spr);
     spr.scrollFactor.set();
   }
   
