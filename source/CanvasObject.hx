@@ -63,9 +63,6 @@ class CanvasObject extends FlxGroup
     visual_selection.x = spr.x;
     visual_selection.y = spr.y;
     
-    if (debug_info.visible) {
-      update_position();
-    }
   }
   
   public function update_camera(delta:FlxPoint):Void {
@@ -73,33 +70,44 @@ class CanvasObject extends FlxGroup
     spr.y += delta.y;
   }
   
-  function update_position():Void {
-    if (FlxG.mouse.pressed) {
-      var pt:FlxPoint = FlxG.mouse.getWorldPosition();
-      spr.x = pt.x - clickPosition.x;
-      spr.y = pt.y - clickPosition.y;
-      updateInfo();
-      //trace("update_position");
-    }
-  }
-  
-  public function select():Void {
+  public function move_start() {
     var pt:FlxPoint = FlxG.mouse.getWorldPosition();
     clickPosition.x = pt.x - spr.x;
     clickPosition.y = pt.y - spr.y;
-    debug_info.visible = true;
-    
-    trace(name + " selected (at "+clickPosition+")");
   }
-  public function unselect():Void {
+  
+  public function move_update() {
+    var pt:FlxPoint = FlxG.mouse.getWorldPosition();
+      spr.x = pt.x - clickPosition.x;
+      spr.y = pt.y - clickPosition.y;
+      updateInfo();
+  }
+  
+  public function move_end() {
     clickPosition.x = clickPosition.y = -1;
-    debug_info.visible = false;
+  }
+  
+  public function select():Void {
+    debug_info.visible = true;
+    visual_selection.visible = true;
     
-    trace(name + " unselected");
+    //trace(name + " selected (at "+clickPosition+")");
+  }
+  
+  public function unselect():Void {
+    
+    debug_info.visible = false;
+    visual_selection.visible = false;
+    
+    //trace(name + " unselected");
+  }
+  
+  public function isSelected():Bool {
+    return visual_selection.visible;
   }
   
   function updateInfo():Void {
-    debug_info.text = spr.x + "," + spr.y;
+    debug_info.text = name+" "+spr.x + "," + spr.y+((isSelected()) ? "SELECTED" : "");
     debug_info.x = spr.x;
     debug_info.y = spr.y;
   }
@@ -110,6 +118,11 @@ class CanvasObject extends FlxGroup
     bounds.width = spr.width;
     bounds.height = spr.height;
     return bounds;
+  }
+  
+  public function setPosition(x:Float, y:Float):Void {
+    spr.x = x;
+    spr.y = y;
   }
   
   public function show():Void { spr.visible = true; }

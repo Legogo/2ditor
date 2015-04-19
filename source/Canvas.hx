@@ -30,15 +30,13 @@ class Canvas extends FlxGroup
   var selectionRectangle:Rectangle = new Rectangle();
   var selectedObjects:Array<CanvasObject> = new Array<CanvasObject>();
   
-	var state_move_object:Int = 0;
-	var state_pan_camera:Int = 1;
-	var state_selection:Int = 2;
-	
-  var state:Int = 0;
-  
-  var snapState:Bool = false;
+  var statePan:Bool = false;
+  var stateSelection:Bool = false;
+  var stateSnap:Bool = false;
+  var stateMoveSelection:Bool = false;
   
   var origin:CanvasObject;
+  var underMouseObject:CanvasObject;
   
   public function new() 
   {
@@ -57,6 +55,8 @@ class Canvas extends FlxGroup
     var sp:FlxSprite = new FlxSprite(ref.cachedGraphics);
     sp.origin.x = sp.origin.y = 0;
     var obj:CanvasObject = new CanvasObject(sp);
+    obj.setPosition(FlxG.width * 0.5, FlxG.height * 0.5);
+    
     objects.push(obj);
     obj.name = "obj-" + objects.length;
     add(obj);
@@ -66,17 +66,59 @@ class Canvas extends FlxGroup
   {
     super.update();
     
-    if (FlxG.keys.pressed.SPACE) {
-      state = state_pan_camera;
-    }
+    //stay pressed
+    statePan = FlxG.keys.pressed.SPACE;
+    
+    //toggle
+    if (FlxG.keys.justPressed.S) { stateSnap = !stateSnap; }
     
     update_mouseDelta();
-    selection_update();
     
-    if (FlxG.keys.justPressed.S) {
-      snapState = !snapState;
+    underMouseObject = getObjectUnderMouse();
+    var pt:FlxPoint = getMouse();
+    
+    if (FlxG.mouse.justPressed) {
+      stateMoveSelection = false;
+      stateSelection = false;
+      
+      if (underMouseObject != null) {
+        stateMoveSelection = true;
+        
+        //if (selectedObjects.length > 1) { unselectedAll(); }
+        if (selectedObjects.length <= 1) { 
+          unselectedAll();
+          selection_addObject(underMouseObject);
+        }
+        for (i in 0...selectedObjects.length) { selectedObjects[i].move_start(); }
+        
+      }else {
+        stateSelection = true;
+        selectionRectangle.x = pt.x;
+        selectionRectangle.y = pt.y;
+        selectionRectangle.width = 0;
+        selectionRectangle.height = 0;
+      }
     }
     
+    if (FlxG.mouse.pressed) {
+      
+      if (stateSelection) {
+        selection_update();
+      }
+      
+      if (stateMoveSelection) {
+        for (i in 0...selectedObjects.length) { selectedObjects[i].move_update(); }
+      }
+      
+    }
+    
+    if (FlxG.mouse.justReleased) {
+      if (isMouseNearClickOrigin()) {
+        unselectedAll();
+      }
+      stateSelection = false;
+      stateMoveSelection = false;
+    }
   }
   
   function getObjectUnderMouse():CanvasObject {
@@ -110,45 +152,24 @@ class Canvas extends FlxGroup
   }
   
   function selection_update():Void {
-    if (state == state_pan_camera) return;
     
-    var underMouse:CanvasObject = getObjectUnderMouse();
-    
-    if (FlxG.mouse.justPressed) {
-      
-      //cliqué dans le vide
-      if (underMouse == null) {
-        state = state_selection;
-        trace("SELECTION");
-      }else {
-        state = state_move_object;
-        selection_addObject(underMouse);
-        trace("MOVING OBJECT");
-      }
-      
-      //setup origin of selection rectangle
-      if (state == state_selection) {
-        var mousePos:FlxPoint = getMouse();
-        selectionRectangle.x = mousePos.x;
-        selectionRectangle.y = mousePos.y;
-      }
-      
-    }else if (FlxG.mouse.pressed) {
-      
-      //update du rectangle de selection
-      if (isState(state_selection)) {
-        selection_updateRectangle();
-        selection_updateList();
-      }
-      
-    }else if (FlxG.mouse.justReleased) {
-      //trace("RELEASE");
-      if (!mouseMoved && underMouse == null) {
-        unselect();
-      }
-      
+    //update du rectangle de selection
+    if (stateSelection) {
+      selection_updateRectangle();
+      selection_updateList();
     }
     
+  }
+  
+  function unselectedAll():Void {
+    trace("UNSELECT OBJECTS");
+    for (i in 0...selectedObjects.length) 
+    {
+      selectedObjects[i].unselect();
+    }
+    
+    //reset list
+    selectedObjects = new Array<CanvasObject>();
   }
   
   function selection_updateRectangle():Void {
@@ -161,30 +182,22 @@ class Canvas extends FlxGroup
     //add all objects in rectangle
     for (i in 0...objects.length) 
     {
-      if (selectionRectangle.containsRect(objects[i].getBounds())) {
+      if (objects[i].staticObject) continue;
+      
+      if (selectionRectangle.intersects(objects[i].getBounds())) {
         selection_addObject(objects[i]);
       }
     }
   }
   
   function selection_addObject(obj:CanvasObject):Void {
+    if (obj.staticObject) return;
     obj.select(); // reboot mouse pivot
     
     if (selectedObjects.indexOf(obj) < 0) {
       selectedObjects.push(obj);
       trace("added " + obj + " to selection");
     }
-  }
-  
-  function unselect():Void {
-    trace("UNSELECT OBJECTS");
-    for (i in 0...selectedObjects.length) 
-    {
-      selectedObjects[i].unselect();
-    }
-    
-    //reset list
-    selectedObjects = new Array<CanvasObject>();
   }
   
   function update_mouseDelta():Void {
@@ -249,7 +262,7 @@ class Canvas extends FlxGroup
   public function getHoverObjectName():String {
     var obj:CanvasObject = getObjectUnderMouse();
     if (obj != null) return obj.name;
-    return "nothing";
+    return "none";
   }
   
   function getMouse():FlxPoint {
@@ -259,24 +272,21 @@ class Canvas extends FlxGroup
   function isMouseNearClickOrigin():Bool {
     var dist:Float = FlxMath.getDistance(mouseOrigin, FlxG.mouse.getWorldPosition());
     //trace("distance ? " + dist+" (origin ? "+mouseOrigin+")");
-    if (dist < 1) {
+    if (dist < 5) {
       return true;
     }
     return false;
   }
   
-  public function isState(compareState:Int):Bool {
-    return state == compareState;
-  }
-  
   public function getActionLabel():String {
-		switch(state) {
-			case 0 : return "Move object";
-			case 1 : return "Pan camera";
-    case 2 :
-      if (selectedObjects.length > 0) return "Selected " + selectedObjects.length + " objects";
-      return "Empty selection";
-		}
-		return "";
+    var s:String = "";
+    if (statePan) s = "Pan";
+    if (stateSelection) {
+      s = "[SELECTION "+selectionRectangle.width+"x"+selectionRectangle.height+"]";
+      if (selectedObjects.length > 0) s += "\n" + selectedObjects.length + " objects";
+      else s += "\nEmpty selection";
+    }
+    
+		return s;
   }
 }
