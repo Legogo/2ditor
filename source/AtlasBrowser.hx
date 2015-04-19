@@ -1,4 +1,5 @@
 package;
+import flixel.effects.particles.FlxParticle;
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.group.FlxGroup;
@@ -27,7 +28,7 @@ class AtlasBrowser extends FlxGroup
   var btnImport:FlxButton;
   var btnRemove:FlxButton;
   
-  var sprites:FlxGroup = new FlxGroup();
+  var sprites:FlxGroup = new FlxGroup(); // all symbols
   
   var selectIdx:Int = 0;
   var slotSize:Int = 0;
@@ -52,9 +53,11 @@ class AtlasBrowser extends FlxGroup
     slotSelectionVisual = new AtlasBrowserSelector();
     add(slotSelectionVisual.spr);
     
-    update_atlas();
-    
     Layers.getLayer(Layers.LAYER_UI).add(this);
+  }
+  
+  public function generateAtlas():Void {
+    update_atlas();
   }
   
   override public function update():Void 
@@ -93,18 +96,30 @@ class AtlasBrowser extends FlxGroup
     return -1;
   }
   
-  function getAtlasSprite(idx:Int):FlxSprite {
+  public function getAtlasSpriteByAssetId(id:Int):FlxSprite {
+    for (i in 0...assets.length) {
+      if (Std.parseInt(assets[i].id) == id) return AtlasBrowser.getSpriteFromFilePath(resourcePath + assets[i].filename);
+    }
+    trace("WARNING can't find atlas sprite by asset id " + id);
+    return null;
+  }
+  
+  public function getAtlasSpriteByIndex(idx:Int):FlxSprite {
+    if (sprites == null) {
+      trace("WARNING sprites object is null");
+      return null;
+    }
     return cast(sprites.members[idx], FlxSprite);
   }
   
   function event_insertToCanvas():Void {
     if (selectIdx < 0) return;
-    Canvas.canvas.addAsset(getAtlasSprite(selectIdx));
+    Canvas.canvas.addAssetToCanvas(assets[selectIdx].id);
   }
   
   public function update_atlas():Void {
     
-    //clear old sprites list
+    //empty/clear old sprites list
     for (i in 0...sprites.length) {
       if (sprites.members[i] == null) continue;
       sprites.members[i].exists = false;
@@ -115,14 +130,16 @@ class AtlasBrowser extends FlxGroup
     if (assets == null) return;
     
     for (i in 0...assets.length) {
-      var sp:FlxSprite = update_asset(assets[i]);
+      //var ao:AtlasObject = new AtlasObject(assets[i].id, assets[i].filename, resourcePath);
+      var sp:FlxSprite = AtlasBrowser.getSpriteFromFilePath(resourcePath+assets[i].filename);
 			if (sp != null) {
 				sp.origin.x = 0;
 				sp.origin.y = 0;
 				//sp.makeGraphic(size, size, FlxColor.WHITE);
-				scaleImageHorizontally(getAtlasSprite(i), 0.1);
+				scaleImageHorizontally(sp, 0.1);
 				sp.x = i * slotSize;
 				sp.y = 0;
+        sprites.add(sp);
 			}
     }
     
@@ -138,9 +155,8 @@ class AtlasBrowser extends FlxGroup
     return count;
   }
   
-  function update_asset(file:Object):FlxSprite {
+  static public function getSpriteFromFilePath(fullPath:String):FlxSprite {
     
-    var fullPath:String = resourcePath + file.filename;
     trace("loading " + fullPath);
     var data:BitmapData = BitmapData.load(fullPath);
     
@@ -150,7 +166,6 @@ class AtlasBrowser extends FlxGroup
 		}
 		
     var sp:FlxSprite = new FlxSprite();
-    sprites.add(sp);
     
 		var imgWidth:Float = FlxG.width / data.width;
 		var imgHeight:Float = FlxG.height / data.height;

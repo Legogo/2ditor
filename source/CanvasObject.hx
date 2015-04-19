@@ -125,6 +125,31 @@ class CanvasObject extends FlxGroup
     spr.y = y;
   }
   
+  static public function fromObject(fileObject:Object):CanvasObject {
+    
+    var assetId:Int = Std.parseInt(fileObject.assetId);
+    var graph:FlxSprite = AtlasBrowser.atlasBrowser.getAtlasSpriteByAssetId(assetId);
+    if (graph == null) {
+      trace("WARNING no sprite returned for assetId : " + assetId);
+      return null;
+    }
+    
+    var sp:FlxSprite = new FlxSprite(graph.cachedGraphics);
+    sp.origin.x = sp.origin.y = 0;
+    var obj:CanvasObject = new CanvasObject(sp);
+    
+    var positionString:String = fileObject.position;
+    var pos:Array<String> = positionString.split('x');
+    
+    obj.setPosition(Std.parseFloat(pos[0]), Std.parseFloat(pos[1]));
+    
+    return obj;
+  }
+  
+  public function toObject():Object {
+    return { assetId:Std.parseInt(name), position:spr.x + "x" + spr.y };
+  }
+  
   public function show():Void { spr.visible = true; }
   public function hide():Void { spr.visible = false; }
   public function setVisible(flag:Bool):Void { spr.visible = flag; }

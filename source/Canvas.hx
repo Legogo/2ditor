@@ -7,6 +7,7 @@ import flixel.util.FlxColor;
 import flixel.util.FlxMath;
 import flixel.util.FlxPoint;
 import openfl.geom.Rectangle;
+import openfl.utils.Object;
 
 /**
  * ...
@@ -49,17 +50,6 @@ class Canvas extends FlxGroup
     canvas = this;
     
     Layers.getLayer(Layers.LAYER_CANVAS).add(this);
-  }
-  
-  public function addAsset(ref:FlxSprite):Void {
-    var sp:FlxSprite = new FlxSprite(ref.cachedGraphics);
-    sp.origin.x = sp.origin.y = 0;
-    var obj:CanvasObject = new CanvasObject(sp);
-    obj.setPosition(FlxG.width * 0.5, FlxG.height * 0.5);
-    
-    objects.push(obj);
-    obj.name = "obj-" + objects.length;
-    add(obj);
   }
   
   override public function update():Void 
@@ -118,37 +108,9 @@ class Canvas extends FlxGroup
       }
       stateSelection = false;
       stateMoveSelection = false;
+      
+      FileBridge.instance.saveFile();
     }
-  }
-  
-  function getObjectUnderMouse():CanvasObject {
-    var obj:CanvasObject = null;
-    var pt:FlxPoint = getMouse();
-    var i:Int = objects.length - 1;
-    while (i >= 0) {
-      if (!objects[i].staticObject) {
-        if (objects[i].spr.overlapsPoint(pt, true)) {
-          return objects[i];
-        }
-      }
-      i--;
-    }
-    return null;
-  }
-  
-  function getObjectsUnderMouse():Array<CanvasObject> {
-    var list:Array<CanvasObject> = new Array<CanvasObject>();
-    var pt:FlxPoint = getMouse();
-    var i:Int = objects.length-1;
-    while (i >= 0) {
-      if (!objects[i].staticObject) {
-        if (objects[i].spr.overlapsPoint(pt)) {
-          list.push(objects[i]);
-        }
-      }
-      i--;
-    }
-    return list;
   }
   
   function selection_update():Void {
@@ -170,6 +132,25 @@ class Canvas extends FlxGroup
     
     //reset list
     selectedObjects = new Array<CanvasObject>();
+  }
+  
+  public function addAssetToCanvas(assetId:Int):Void {
+    
+    trace("<Canvas> adding asset of id " + assetId);
+    
+    var obj:CanvasObject = CanvasObject.fromObject(
+      {assetId:assetId, position:""+(FlxG.width * 0.5) + "x" + (FlxG.height * 0.5) }
+    );
+    
+    if (obj == null) {
+      trace("WARNING no object returned CanvasObject::fromObject()");
+      return;
+    }
+    objects.push(obj);
+    obj.name = ""+assetId;
+    add(obj);
+    
+    trace("added asset " + obj.name);
   }
   
   function selection_updateRectangle():Void {
@@ -278,6 +259,36 @@ class Canvas extends FlxGroup
     return false;
   }
   
+  function getObjectUnderMouse():CanvasObject {
+    var obj:CanvasObject = null;
+    var pt:FlxPoint = getMouse();
+    var i:Int = objects.length - 1;
+    while (i >= 0) {
+      if (!objects[i].staticObject) {
+        if (objects[i].spr.overlapsPoint(pt, true)) {
+          return objects[i];
+        }
+      }
+      i--;
+    }
+    return null;
+  }
+  
+  function getObjectsUnderMouse():Array<CanvasObject> {
+    var list:Array<CanvasObject> = new Array<CanvasObject>();
+    var pt:FlxPoint = getMouse();
+    var i:Int = objects.length-1;
+    while (i >= 0) {
+      if (!objects[i].staticObject) {
+        if (objects[i].spr.overlapsPoint(pt)) {
+          list.push(objects[i]);
+        }
+      }
+      i--;
+    }
+    return list;
+  }
+  
   public function getActionLabel():String {
     var s:String = "";
     if (statePan) s = "Pan";
@@ -288,5 +299,27 @@ class Canvas extends FlxGroup
     }
     
 		return s;
+  }
+  
+  public function fromObject(obj:Object):Void {
+    var list:Array<Object> = obj.objects.list;
+    
+    if (list == null) {
+      trace("WARNING list of fileData is null");
+      return;
+    }
+    
+    for (i in 0...list.length) {
+      addAssetToCanvas(list[i].assetId);
+    }
+  }
+  
+  public function toObject():Object {
+    var obj:Object = { list:new Array<Object>() };
+    for (i in 0...objects.length) {
+      if (objects[i].staticObject) continue;
+      obj.list.push(objects[i].toObject());
+    }
+    return obj;
   }
 }

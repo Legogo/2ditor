@@ -35,8 +35,8 @@ class BaseState extends FlxState
 		
 		super.create();
     
+    new AtlasBrowser().generateAtlas();
     new Canvas();
-    new AtlasBrowser();
     
     actionTf = new FlxText(5, FlxG.height - 40, 300, 10);
     Layers.getLayer(Layers.LAYER_DEBUG).add(actionTf);

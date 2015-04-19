@@ -28,14 +28,16 @@ class FileBridge
   public function loadFile():Void {
     try {
       fileData = Json.parse(File.getContent(SystemInfo.PATH_FOLDER + filePath));
-      AtlasBrowser.atlasBrowser.fromObject(fileData);
     }catch(msg:String){
       trace("Can't load level file");
     }
+    
+    AtlasBrowser.atlasBrowser.fromObject(fileData);
+    Canvas.canvas.fromObject(fileData);
   }
   
   public function saveFile():Void {
-    fileData.objects = [];
+    fileData.objects = Canvas.canvas.toObject();
     fileData.assets = AtlasBrowser.atlasBrowser.toObject();
     
     File.saveContent(SystemInfo.PATH_FOLDER + filePath, Json.stringify(fileData));
