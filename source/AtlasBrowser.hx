@@ -114,7 +114,7 @@ class AtlasBrowser extends FlxGroup
   
   function event_insertToCanvas():Void {
     if (selectIdx < 0) return;
-    Canvas.canvas.addAssetToCanvas(assets[selectIdx].id);
+    Canvas.canvas.addAssetToCanvas(assets[selectIdx].id); // default position is center of screen
   }
   
   public function update_atlas():Void {

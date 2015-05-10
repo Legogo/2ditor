@@ -6,6 +6,7 @@ import flixel.text.FlxText;
 import flixel.util.FlxColor;
 import flixel.util.FlxPoint;
 import flixel.util.FlxSpriteUtil;
+import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.utils.Object;
 
@@ -120,6 +121,9 @@ class CanvasObject extends FlxGroup
     return bounds;
   }
   
+  public function getPosition():Point {
+    return new Point(spr.x, spr.y);
+  }
   public function setPosition(x:Float, y:Float):Void {
     spr.x = x;
     spr.y = y;
@@ -127,6 +131,7 @@ class CanvasObject extends FlxGroup
   
   static public function fromObject(fileObject:Object):CanvasObject {
     
+    trace(fileObject);
     var assetId:Int = Std.parseInt(fileObject.assetId);
     var graph:FlxSprite = AtlasBrowser.atlasBrowser.getAtlasSpriteByAssetId(assetId);
     if (graph == null) {
@@ -142,6 +147,8 @@ class CanvasObject extends FlxGroup
     var pos:Array<String> = positionString.split('x');
     
     obj.setPosition(Std.parseFloat(pos[0]), Std.parseFloat(pos[1]));
+    
+    trace("<CanvasObject> created object | assetId : " + assetId + " | position : " + positionString);
     
     return obj;
   }

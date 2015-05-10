@@ -6,6 +6,7 @@ import flixel.util.FlxCollision;
 import flixel.util.FlxColor;
 import flixel.util.FlxMath;
 import flixel.util.FlxPoint;
+import openfl.geom.Point;
 import openfl.geom.Rectangle;
 import openfl.utils.Object;
 
@@ -134,23 +135,23 @@ class Canvas extends FlxGroup
     selectedObjects = new Array<CanvasObject>();
   }
   
-  public function addAssetToCanvas(assetId:Int):Void {
+  public function addAssetToCanvas(assetId:Int, position:String = ""):Void {
     
-    trace("<Canvas> adding asset of id " + assetId);
+    //trace("<Canvas> adding asset of id " + assetId + " pos ? " + position);
     
-    var obj:CanvasObject = CanvasObject.fromObject(
-      {assetId:assetId, position:""+(FlxG.width * 0.5) + "x" + (FlxG.height * 0.5) }
-    );
+    if (position.length <= 0) position = (FlxG.width * 0.5) + "x" + (FlxG.height * 0.5);
     
-    if (obj == null) {
+    var obj:Object = { assetId:assetId, position:position };
+    var cObject:CanvasObject = CanvasObject.fromObject(obj);
+    
+    if (cObject == null) {
       trace("WARNING no object returned CanvasObject::fromObject()");
       return;
     }
-    objects.push(obj);
-    obj.name = ""+assetId;
-    add(obj);
     
-    trace("added asset " + obj.name);
+    objects.push(cObject);
+    cObject.name = ""+assetId;
+    add(cObject);
   }
   
   function selection_updateRectangle():Void {
@@ -310,7 +311,7 @@ class Canvas extends FlxGroup
     }
     
     for (i in 0...list.length) {
-      addAssetToCanvas(list[i].assetId);
+      addAssetToCanvas(list[i].assetId, list[i].position);
     }
   }
   

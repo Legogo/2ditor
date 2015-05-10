@@ -7,8 +7,10 @@ import sys.io.FileInput;
 import sys.io.FileOutput;
 
 /**
- * ...
- * @author 
+ * {
+ *   assets:{list[{filename,id}],path}
+ *   objects:{list[{position,assetId}]}
+ * }
  */
 class FileBridge
 {
