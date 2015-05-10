@@ -29,7 +29,7 @@ class Canvas extends FlxGroup
   var mouseOrigin:FlxPoint = new FlxPoint();
   var mouseMoved:Bool = false;
   
-  var selectionRectangle:Rectangle = new Rectangle();
+  var selection:CanvasSelection;
   var selectedObjects:Array<CanvasObject> = new Array<CanvasObject>();
   
   var statePan:Bool = false;
@@ -51,6 +51,9 @@ class Canvas extends FlxGroup
     canvas = this;
     
     Layers.getLayer(Layers.LAYER_CANVAS).add(this);
+    
+    selection = new CanvasSelection();
+    Layers.getLayer(Layers.LAYER_UI).add(selection);
   }
   
   override public function update():Void 
@@ -84,10 +87,9 @@ class Canvas extends FlxGroup
         
       }else {
         stateSelection = true;
-        selectionRectangle.x = pt.x;
-        selectionRectangle.y = pt.y;
-        selectionRectangle.width = 0;
-        selectionRectangle.height = 0;
+        
+        //reset rect
+        selection.reset(pt);
       }
     }
     
@@ -112,20 +114,22 @@ class Canvas extends FlxGroup
       
       FileBridge.instance.saveFile();
     }
+    
+    selection.visible = stateSelection;
   }
   
   function selection_update():Void {
     
     //update du rectangle de selection
     if (stateSelection) {
-      selection_updateRectangle();
+      selection.updateSelection(getMouse());
       selection_updateList();
     }
     
   }
   
   function unselectedAll():Void {
-    trace("UNSELECT OBJECTS");
+    trace("<Canvas> UNSELECT OBJECTS");
     for (i in 0...selectedObjects.length) 
     {
       selectedObjects[i].unselect();
@@ -154,19 +158,15 @@ class Canvas extends FlxGroup
     add(cObject);
   }
   
-  function selection_updateRectangle():Void {
-    var pos:FlxPoint = getMouse();
-    selectionRectangle.width = pos.x - selectionRectangle.x;
-    selectionRectangle.height = pos.y - selectionRectangle.y;
-  }
-  
   function selection_updateList():Void {
+    var r:Rectangle = selection.getRectangle();
+    
     //add all objects in rectangle
     for (i in 0...objects.length) 
     {
       if (objects[i].staticObject) continue;
       
-      if (selectionRectangle.intersects(objects[i].getBounds())) {
+      if (r.intersects(objects[i].getBounds())) {
         selection_addObject(objects[i]);
       }
     }
@@ -294,7 +294,8 @@ class Canvas extends FlxGroup
     var s:String = "";
     if (statePan) s = "Pan";
     if (stateSelection) {
-      s = "[SELECTION "+selectionRectangle.width+"x"+selectionRectangle.height+"]";
+      var r:Rectangle = selection.getRectangle();
+      s = "[SELECTION "+r.width+"x"+r.height+"]";
       if (selectedObjects.length > 0) s += "\n" + selectedObjects.length + " objects";
       else s += "\nEmpty selection";
     }
