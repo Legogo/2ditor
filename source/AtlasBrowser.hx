@@ -11,11 +11,13 @@ import flash.geom.Matrix;
 import flash.display.BitmapData;
 import openfl.events.Event;
 import openfl.utils.Object;
+import sys.io.FileSeek;
 import systools.Dialogs;
 import flixel.ui.FlxButton;
 import sys.io.File;
 import sys.io.FileInput;
 import sys.io.FileOutput;
+import sys.FileSystem;
 
 /**
  * ...
@@ -34,6 +36,9 @@ class AtlasBrowser extends FlxGroup
   var slotSize:Int = 0;
   
   var slotSelectionVisual:AtlasBrowserSelector;
+  
+	var resourcePath:String = "";
+  var assets:Array<Object>; //{id,filename}
   
   public function new() 
   {
@@ -157,7 +162,7 @@ class AtlasBrowser extends FlxGroup
   
   static public function getSpriteFromFilePath(fullPath:String):FlxSprite {
     
-    trace("loading " + fullPath);
+    //trace("<AtlasBrowser> loading " + fullPath);
     var data:BitmapData = BitmapData.load(fullPath);
     
 		if (data.width <= 0) {
@@ -270,20 +275,36 @@ class AtlasBrowser extends FlxGroup
   
 	/* SAVE / LOAD */
 	
-	var resourcePath:String = "";
-  var assets:Array<Object>; //{id,filename}
-  
   public function fromObject(obj:Object):Void {
 		var data:Object = obj.assets;
-		
-    if (data.path != null) {
-      resourcePath = data.path;
-    }
+    var obj:Object = null;
     
+		//assets
     if (data.list != null) {
       assets = data.list; // [{id,path}]
+      obj = assets[0];
       trace("<Atlas>loaded assets : " + assets.length);
     }
+    
+    //find path
+    resourcePath = "";
+    if (data.path != null) {
+      var list:Array<String> = data.path; // strings
+      
+      var i:UInt = 0;
+      var validPath:String = "";
+      for (i in 0...list.length) {
+        //File.list[i]+assets["filename"]
+        
+        if (FileSystem.exists(list[i] + obj.filename)) {
+          resourcePath = list[i];
+        }
+      }
+      
+      //resourcePath = data.path[0];
+    }
+    
+    if (resourcePath.length <= 0) { throw "[ERROR] No resource path"; }
     
     update_atlas();
   }
