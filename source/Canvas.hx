@@ -22,51 +22,51 @@ class Canvas extends FlxGroup
   
   var objects:Array<CanvasObject> = new Array<CanvasObject>();
   
-  var grid:CanvasGrid;
-  
-  var mouseDelta:FlxPoint = new FlxPoint();
-  var lastPosition:FlxPoint = new FlxPoint();
-  var mouseOrigin:FlxPoint = new FlxPoint();
-  var mouseMoved:Bool = false;
+  var ui_tools:CanvasTools;
+  var ui_grid:CanvasGrid;
   
   var selection:CanvasSelection;
   var selectedObjects:Array<CanvasObject> = new Array<CanvasObject>();
   
   var statePan:Bool = false;
   var stateSelection:Bool = false;
-  var stateSnap:Bool = false;
   var stateMoveSelection:Bool = false;
   
   var origin:CanvasObject;
   var underMouseObject:CanvasObject;
+  var cursor:CanvasCursor;
+  
+  public var position:FlxPoint;
   
   public function new() 
   {
     super();
     
-    origin = new CanvasOrigin();
-    objects.push(origin);
-    add(origin.spr);
+    position = new FlxPoint();
+    
+    origin = new CanvasOrigin(this);
+    Layers.getLayer(Layers.LAYER_CANVAS).add(origin);
+    
+    ui_grid = new CanvasGrid(this);
+    Layers.getLayer(Layers.LAYER_CANVAS).add(ui_grid);
     
     canvas = this;
-    
     Layers.getLayer(Layers.LAYER_CANVAS).add(this);
     
     selection = new CanvasSelection();
     Layers.getLayer(Layers.LAYER_UI).add(selection);
+    
+    cursor = new CanvasCursor();
+    Layers.getLayer(Layers.LAYER_UI).add(cursor);
+    
+    ui_tools = new CanvasTools(this, ui_grid);
   }
   
   override public function update():Void 
   {
     super.update();
     
-    //stay pressed
-    statePan = FlxG.keys.pressed.SPACE;
-    
-    //toggle
-    if (FlxG.keys.justPressed.S) { stateSnap = !stateSnap; }
-    
-    update_mouseDelta();
+    update_pan();
     
     underMouseObject = getObjectUnderMouse();
     var pt:FlxPoint = getMouse();
@@ -95,18 +95,27 @@ class Canvas extends FlxGroup
     
     if (FlxG.mouse.pressed) {
       
-      if (stateSelection) {
-        selection_update();
-      }
+      if (stateSelection) { selection_update(); }
       
       if (stateMoveSelection) {
-        for (i in 0...selectedObjects.length) { selectedObjects[i].move_update(); }
+        
+        if (ui_grid.visible) {
+          var pt:FlxPoint = getMouse();
+          pt.x -= position.x;
+          pt.y -= position.y;
+          if(ui_grid.visible) pt = ui_grid.snapPosition(pt);
+          //for (i in 0...selectedObjects.length) { selectedObjects[i].move_step(pt); }
+          for (i in 0...selectedObjects.length) { selectedObjects[i].setPosition(pt.x,pt.y); }
+        }else {
+          for (i in 0...selectedObjects.length) { selectedObjects[i].move_update(); }
+        }
+        
       }
       
     }
     
     if (FlxG.mouse.justReleased) {
-      if (isMouseNearClickOrigin()) {
+      if (cursor.left_mouseMoved) {
         unselectedAll();
       }
       stateSelection = false;
@@ -122,7 +131,10 @@ class Canvas extends FlxGroup
     
     //update du rectangle de selection
     if (stateSelection) {
-      selection.updateSelection(getMouse());
+      
+      var pt:FlxPoint = getMouse();
+      //pt.x -= position.x;pt.y -= position.y;
+      selection.updateSelection(pt); // draw rectangle
       selection_updateList();
     }
     
@@ -178,53 +190,22 @@ class Canvas extends FlxGroup
     
     if (selectedObjects.indexOf(obj) < 0) {
       selectedObjects.push(obj);
-      trace("added " + obj + " to selection");
+      trace("<Canvas> added " + obj + " to selection");
     }
   }
   
-  function update_mouseDelta():Void {
+  function update_pan():Void {
     
-		var pos:FlxPoint = FlxG.mouse.getWorldPosition();
-		
-		if (FlxG.mouse.justReleased) {
-			mouseDelta.x = mouseDelta.y = 0;
-			lastPosition.x = lastPosition.y = 0;
-			return;
-		}
-		
-    if (FlxG.mouse.justPressed) {
-      lastPosition.x = pos.x;
-      lastPosition.y = pos.y;
-      
-      mouseOrigin.x = pos.x;
-      mouseOrigin.y = pos.y;
-      mouseMoved = false;
-      //trace("origin = " + mouseOrigin);
+    //stay pressed
+    if (FlxG.mouse.justPressedMiddle) {
+      statePan = true;
+    }else if (FlxG.mouse.justReleasedMiddle) {
+      statePan = false;
     }
     
-		if (FlxG.mouse.pressed) {
-			mouseDelta.x = pos.x - lastPosition.x;
-			mouseDelta.y = pos.y - lastPosition.y;
-      lastPosition.x = pos.x;
-      lastPosition.y = pos.y;
-      
-      if (!isMouseNearClickOrigin()) {
-        if (!mouseMoved) {
-          mouseMoved = true;
-          trace("mouse moved");
-        }
-      }
-		}
-		
-  }
-  
-  function update_cameraMove():Void {
-    
-    for (j in 0...objects.length) 
-    {
-      if (!objects[j].staticObject) {
-        objects[j].update_camera(mouseDelta);
-      }
+    if (statePan) {
+      position.x += cursor.delta.x;
+      position.y += cursor.delta.y;
     }
   }
   
@@ -248,16 +229,9 @@ class Canvas extends FlxGroup
   }
   
   function getMouse():FlxPoint {
-    return FlxG.mouse.getWorldPosition();
-  }
-  
-  function isMouseNearClickOrigin():Bool {
-    var dist:Float = FlxMath.getDistance(mouseOrigin, FlxG.mouse.getWorldPosition());
-    //trace("distance ? " + dist+" (origin ? "+mouseOrigin+")");
-    if (dist < 5) {
-      return true;
-    }
-    return false;
+    var mouse:FlxPoint = FlxG.mouse.getWorldPosition();
+    //mouse.x += position.x;mouse.y += position.y;
+    return mouse;
   }
   
   function getObjectUnderMouse():CanvasObject {

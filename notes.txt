@@ -1,32 +1,3 @@
-[
-  {"category":"level","data":[]},
-  {"category":"atlas","data":[
-    {"id":"1", "path":"D:/epicbros/collateral/assets/images/level/level_ground.png"},
-    {"id":"2", "path":"D:/epicbros/collateral/assets/images/level/level_symbol.png"}
-  ]}
-]
+todo
 
-
-level-objects > [position and info of all objects in canvas]
-path > [folder paths to find assets]
-assets > [atlas assets file names and info + uniqid]
-
-[
-	{"level-objects":[
-		{"asset-id":1092840194,"x":-250,"y":100},
-		{"asset-id":1092840194,"x":10,"y":120}
-	]},
-	{"paths":[
-		{"id":123456, "path":"C:\myabsolutepath\"},
-    {"id":456789, "path":"C:\anotherabsolutepath\"}
-	]},
-	{"assets":[
-		{"id":1092840194, "path-id":123456, "file":"myFile.png"},
-		{"id":1092840195, "path-id":123456, "file":"myFile2.png"}
-	]}
-]
-
-[{
-  "level-objects":[],
-	"assets":{"path":"","list":[{"id":123456,"filename":"myFile.jpg"}]}
-}]
+fix le rectangle de selection avec le principe de panning

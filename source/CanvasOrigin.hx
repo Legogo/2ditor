@@ -12,9 +12,9 @@ import openfl.utils.Object;
 class CanvasOrigin extends CanvasObject
 {
 
-  public function new() 
+  public function new(c:Canvas) 
   {
-    super(new FlxSprite());
+    super(c,new FlxSprite());
     staticObject = true;
     
     lineStyle = { color: FlxColor.RED, thickness: 3 };

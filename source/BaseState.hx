@@ -55,7 +55,9 @@ class BaseState extends FlxState
     var obj:CanvasObject = Canvas.canvas.getHoverObject();
     if (obj != null) actionTf.text = "Hovering " + obj.name;
     
-    actionTf.text += "\n"+Canvas.canvas.getActionLabel();
+    var c:Canvas = Canvas.canvas;
+    actionTf.text += "\n" + c.getActionLabel();
+    actionTf.text += "\n" + c.position.x+"x"+c.position.y;
   }
   
 }

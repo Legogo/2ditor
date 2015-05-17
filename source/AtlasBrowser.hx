@@ -38,6 +38,8 @@ class AtlasBrowser extends FlxGroup
   var slotSelectionVisual:AtlasBrowserSelector;
   
 	var resourcePath:String = "";
+  
+  var paths:Array<String>;
   var assets:Array<Object>; //{id,filename}
   
   public function new() 
@@ -56,7 +58,7 @@ class AtlasBrowser extends FlxGroup
     add(sprites);
     
     slotSelectionVisual = new AtlasBrowserSelector();
-    add(slotSelectionVisual.spr);
+    add(slotSelectionVisual);
     
     Layers.getLayer(Layers.LAYER_UI).add(this);
   }
@@ -259,7 +261,7 @@ class AtlasBrowser extends FlxGroup
   
   function setSelectionSlot(newSlot:Int):Void {
     selectIdx = newSlot;
-    slotSelectionVisual.setVisible(selectIdx >= 0);
+    slotSelectionVisual.visible = selectIdx >= 0;
     if (selectIdx >= 0) {
       slotSelectionVisual.update_slotIndex(selectIdx);
     }
@@ -282,36 +284,37 @@ class AtlasBrowser extends FlxGroup
 		//assets
     if (data.list != null) {
       assets = data.list; // [{id,path}]
+      if (assets.length <= 0) {
+        
+      }
       obj = assets[0];
       trace("<Atlas>loaded assets : " + assets.length);
     }
     
-    //find path
+    paths = data.paths;
+    trace("<AtlasBrowser> path count : " + paths.length);
+    
+    //find the right path
     resourcePath = "";
-    if (data.path != null) {
-      var list:Array<String> = data.path; // strings
+    var i:UInt = 0;
+    var validPath:String = "";
+    for (i in 0...paths.length) {
+      //File.list[i]+assets["filename"]
       
-      var i:UInt = 0;
-      var validPath:String = "";
-      for (i in 0...list.length) {
-        //File.list[i]+assets["filename"]
-        
-        if (FileSystem.exists(list[i] + obj.filename)) {
-          resourcePath = list[i];
-        }
+      if (FileSystem.exists(paths[i] + obj.filename)) {
+        resourcePath = paths[i];
       }
-      
-      //resourcePath = data.path[0];
     }
     
     if (resourcePath.length <= 0) { throw "[ERROR] No resource path"; }
+    else trace("<AtlasBrowser> selected path : " + resourcePath);
     
     update_atlas();
   }
   
   public function toObject():Object {
     var o:Object = { };
-		o.path = resourcePath;
+		o.paths = paths;
     o.list = assets;
 		return o;
   }

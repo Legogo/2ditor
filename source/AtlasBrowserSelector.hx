@@ -9,27 +9,28 @@ import openfl.utils.Object;
  * ...
  * @author 
  */
-class AtlasBrowserSelector extends CanvasObject
+class AtlasBrowserSelector extends FlxSprite
 {
   
   var size:Float = FlxG.width * 0.1; 
   
   public function new() 
   {
-    super(new FlxSprite());
-    spr.scrollFactor.set();
+    super();
     
-    lineStyle = { color: FlxColor.RED, thickness: 2 };
+    scrollFactor.set();
     
-    spr.makeGraphic(FlxG.width, FlxG.height, FlxColor.TRANSPARENT, true);
-    FlxSpriteUtil.drawLine(spr, 0, 0, size, 0, lineStyle);
-    FlxSpriteUtil.drawLine(spr, size, 0, size, size, lineStyle);
-    FlxSpriteUtil.drawLine(spr, 0, 0, 0, size, lineStyle);
-    FlxSpriteUtil.drawLine(spr, 0, size, size, size, lineStyle);
+    var lineStyle:Object = { color: FlxColor.RED, thickness: 2 };
+    
+    makeGraphic(FlxG.width, FlxG.height, FlxColor.TRANSPARENT, true);
+    FlxSpriteUtil.drawLine(this, 0, 0, size, 0, lineStyle);
+    FlxSpriteUtil.drawLine(this, size, 0, size, size, lineStyle);
+    FlxSpriteUtil.drawLine(this, 0, 0, 0, size, lineStyle);
+    FlxSpriteUtil.drawLine(this, 0, size, size, size, lineStyle);
   }
   
   public function update_slotIndex(newIndex:Int):Void {
-    spr.x = (newIndex * size);
+    x = (newIndex * size);
   }
   
 }

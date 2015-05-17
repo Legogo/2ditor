@@ -31,7 +31,7 @@ class FileBridge
     try {
       fileData = Json.parse(File.getContent(SystemInfo.PATH_FOLDER + filePath));
     }catch(msg:String){
-      trace("Can't load level file");
+      trace("<FileBridge> Can't load level file");
     }
     
     AtlasBrowser.atlasBrowser.fromObject(fileData);
@@ -42,8 +42,10 @@ class FileBridge
     fileData.objects = Canvas.canvas.toObject();
     fileData.assets = AtlasBrowser.atlasBrowser.toObject();
     
+    //trace("<SAVING>\n"+fileData);
+    
     File.saveContent(SystemInfo.PATH_FOLDER + filePath, Json.stringify(fileData));
-    trace("[FILE SAVED]");
+    trace("<FileBridge> [FILE SAVED]");
   }
   
 }

@@ -18,20 +18,27 @@ class CanvasObject extends FlxGroup
 {
   
   var lineStyle:Object = { color: FlxColor.CYAN, thickness: 5 };
-  var visual_selection:FlxSprite;
+  var visual_selection:FlxSprite; //overlay on selected
+  
+  public var x:Float = 0;
+  public var y:Float = 0;
+  public var spr:FlxSprite; // symbol
   
   var debug_info:FlxText;
-  public var spr:FlxSprite;
-  
   public var staticObject:Bool = false;
   
   public var name:String = "";
   var clickPosition:FlxPoint = new FlxPoint();
   var bounds:Rectangle = new Rectangle();
   
-  public function new(sprite:FlxSprite) 
+  var canvas:Canvas;
+  
+  public function new(canvas:Canvas, sprite:FlxSprite) 
   {
     super();
+    
+    this.canvas = canvas;
+    
     debug_info = new FlxText(0, 0, 100);
     spr = sprite;
     
@@ -61,27 +68,28 @@ class CanvasObject extends FlxGroup
   {
     super.update();
     
-    visual_selection.x = spr.x;
-    visual_selection.y = spr.y;
+    spr.x = x + canvas.position.x;
+    spr.y = y + canvas.position.y;
     
-  }
-  
-  public function update_camera(delta:FlxPoint):Void {
-    spr.x += delta.x;
-    spr.y += delta.y;
+    debug_info.x = visual_selection.x = spr.x;
+    debug_info.y = visual_selection.y = spr.y;
   }
   
   public function move_start() {
     var pt:FlxPoint = FlxG.mouse.getWorldPosition();
-    clickPosition.x = pt.x - spr.x;
-    clickPosition.y = pt.y - spr.y;
+    clickPosition.x = pt.x - x;
+    clickPosition.y = pt.y - y;
+  }
+  
+  public function move_step(worldpos:FlxPoint):Void {
+    x = worldpos.x - clickPosition.x;
+    y = worldpos.y - clickPosition.y;
+    updateInfo();
   }
   
   public function move_update() {
     var pt:FlxPoint = FlxG.mouse.getWorldPosition();
-      spr.x = pt.x - clickPosition.x;
-      spr.y = pt.y - clickPosition.y;
-      updateInfo();
+    move_step(pt);
   }
   
   public function move_end() {
@@ -91,7 +99,7 @@ class CanvasObject extends FlxGroup
   public function select():Void {
     debug_info.visible = true;
     visual_selection.visible = true;
-    
+    updateInfo();
     //trace(name + " selected (at "+clickPosition+")");
   }
   
@@ -108,25 +116,26 @@ class CanvasObject extends FlxGroup
   }
   
   function updateInfo():Void {
-    debug_info.text = name+" "+spr.x + "," + spr.y+((isSelected()) ? "SELECTED" : "");
-    debug_info.x = spr.x;
-    debug_info.y = spr.y;
+    debug_info.text = "#" + name;
+    debug_info.text += "\n" + spr.x + ", " + spr.y;
+    debug_info.text += ((isSelected()) ? "\nSELECTED" : "");
   }
   
   public function getBounds():Rectangle {
-    bounds.x = spr.x;
-    bounds.y = spr.y;
+    bounds.x = x;
+    bounds.y = y;
     bounds.width = spr.width;
     bounds.height = spr.height;
     return bounds;
   }
   
   public function getPosition():Point {
-    return new Point(spr.x, spr.y);
+    return new Point(x, y);
   }
   public function setPosition(x:Float, y:Float):Void {
-    spr.x = x;
-    spr.y = y;
+    this.x = x;
+    this.y = y;
+    updateInfo();
   }
   
   static public function fromObject(fileObject:Object):CanvasObject {
@@ -135,26 +144,26 @@ class CanvasObject extends FlxGroup
     var assetId:Int = Std.parseInt(fileObject.assetId);
     var graph:FlxSprite = AtlasBrowser.atlasBrowser.getAtlasSpriteByAssetId(assetId);
     if (graph == null) {
-      trace("WARNING no sprite returned for assetId : " + assetId);
+      trace("[WARNING] <CanvasObject> no sprite returned for assetId : " + assetId);
       return null;
     }
     
     var sp:FlxSprite = new FlxSprite(graph.cachedGraphics);
     sp.origin.x = sp.origin.y = 0;
-    var obj:CanvasObject = new CanvasObject(sp);
+    var obj:CanvasObject = new CanvasObject(Canvas.canvas, sp);
     
     var positionString:String = fileObject.position;
     var pos:Array<String> = positionString.split('x');
     
     obj.setPosition(Std.parseFloat(pos[0]), Std.parseFloat(pos[1]));
     
-    trace("<CanvasObject> created object | assetId : " + assetId + " | position : " + positionString);
+    //trace("<CanvasObject> created object | assetId : " + assetId + " | position : " + positionString);
     
     return obj;
   }
   
   public function toObject():Object {
-    return { assetId:Std.parseInt(name), position:spr.x + "x" + spr.y };
+    return { assetId:Std.parseInt(name), position:x + "x" + y };
   }
   
   public function show():Void { spr.visible = true; }
