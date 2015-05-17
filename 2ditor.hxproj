@@ -4,7 +4,7 @@
   <output>
     <movie outputType="CustomBuild" />
     <movie input="" />
-    <movie path="Project.xml" />
+    <movie path="project.xml" />
     <movie fps="60" />
     <movie width="640" />
     <movie height="480" />
@@ -15,16 +15,16 @@
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
-    <class path="C:\HaxeToolkit\haxe\lib\flixel\3,3,8" />
-    <class path="C:\HaxeToolkit\haxe\lib\openfl\3,0,1" />
-    <class path="C:\HaxeToolkit\haxe\lib\lime\2,3,1" />
-    <class path="C:\HaxeToolkit\haxe\lib\systools\1,1,0" />
+    <class path="C:\Users\lovehina\openfl\flixel\3,3,8" />
+    <class path="C:\Users\lovehina\openfl\openfl\3,0,3" />
+    <class path="C:\Users\lovehina\openfl\lime\2,3,3" />
+    <class path="C:\Users\lovehina\openfl\systools\1,1,0" />
     <class path="source" />
     <class path="export\windows\neko\haxe" />
   </classpaths>
   <!-- Build options -->
   <build>
-    <option directives="flixel=3.3.8&#xA;openfl=3.0.1&#xA;lime=2.3.1&#xA;systools=1.1.0&#xA;openfl-next&#xA;tools=2.3.1&#xA;no-compilation&#xA;native&#xA;lime-native&#xA;openfl-native&#xA;FLX_RENDER_TILE&#xA;windows&#xA;desktop" />
+    <option directives="flixel=3.3.8&#xA;openfl=3.0.3&#xA;lime=2.3.3&#xA;systools=1.1.0&#xA;openfl-next&#xA;tools=2.3.3&#xA;no-compilation&#xA;native&#xA;lime-native&#xA;openfl-native&#xA;FLX_RENDER_TILE&#xA;windows&#xA;desktop" />
     <option flashStrict="False" />
     <option noInlineOnDebug="False" />
     <option mainClass="ApplicationMain" />
